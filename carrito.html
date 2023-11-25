@@ -1,0 +1,110 @@
+
+
+<html>
+<head>
+  <title>Carrito de Compras</title>
+  <style>
+    .destino-item {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Carrito de Compras</h1>
+
+
+  <div id="carrito-container">
+
+  </div>
+
+
+
+  <button onclick="continuarViendo()">Continuar Viendo</button>
+  <button onclick="finalizarCompra()">Finalizar Compra</button>
+
+  <div>
+    <h3>Total General: $<span id="totalGeneral">0</span></h3>
+  </div>
+
+  <script>
+    let carrito = [];
+
+    fetch('/obtener-carrito')
+      .then(response => response.json())
+      .then(data => {
+        carrito = data;
+        mostrarCarrito();
+        actualizarTotales();
+      })
+      .catch(error => console.error('Error:', error));
+
+    function mostrarCarrito() {
+      const carritoContainer = document.getElementById('carrito-container');
+      carritoContainer.innerHTML = '';
+
+      carrito.forEach((item, index) => {
+        const divDestino = document.createElement('div');
+        divDestino.className = 'destino-item';
+
+        const destinoInfo = document.createElement('p');
+        destinoInfo.textContent = `${item.destino} - $${item.precio} por unidad`;
+
+        const cantidadPersonasInput = document.createElement('input');
+        cantidadPersonasInput.type = 'number';
+        cantidadPersonasInput.value = item.cantidadPersonas || 1;
+        cantidadPersonasInput.min = 1;
+        cantidadPersonasInput.addEventListener('change', () => actualizarCantidadPersonas(index));
+
+        const botonEliminar = document.createElement('button');
+        botonEliminar.textContent = 'Eliminar';
+        botonEliminar.onclick = () => eliminarDelCarrito(index);
+
+        divDestino.appendChild(destinoInfo);
+        divDestino.appendChild(cantidadPersonasInput);
+        divDestino.appendChild(botonEliminar);
+
+        carritoContainer.appendChild(divDestino);
+      });
+    }
+
+    function eliminarDelCarrito(index) {
+      carrito.splice(index, 1);
+      mostrarCarrito();
+      actualizarTotales();
+    }
+
+    function actualizarCantidadPersonas(index) {
+      const cantidadPersonasInput = document.querySelectorAll('.destino-item input')[index];
+      carrito[index].cantidadPersonas = parseInt(cantidadPersonasInput.value, 10);
+      actualizarTotales();
+    }
+
+    function actualizarTotales() {
+      const carritoContainer = document.getElementById('carrito-container');
+      let totalGeneral = 0;
+
+      carritoContainer.childNodes.forEach((destinoDiv, index) => {
+        const cantidadPersonasInput = destinoDiv.querySelector('input');
+        const cantidadPersonas = cantidadPersonasInput ? parseInt(cantidadPersonasInput.value, 10) : 1;
+
+        const totalPorDestino = carrito[index].precio * cantidadPersonas;
+        totalGeneral += totalPorDestino;
+
+        const destinoInfo = destinoDiv.querySelector('p');
+        destinoInfo.textContent = `${carrito[index].destino} - $${totalPorDestino} por unidad`;
+      });
+
+      document.getElementById('totalGeneral').textContent = totalGeneral;
+    }
+
+    function continuarViendo() {
+      window.location.href = '/index';
+    }
+
+    function finalizarCompra() {
+
+      window.location.href = '/pagina14';
+    }
+  </script>
+</body>
+</html>
